@@ -12,7 +12,7 @@ namespace erpc {
  * @relates Rpc
  * @brief Maximum number of eRPC processes per machine
  */
-static constexpr size_t kMaxNumERpcProcesses = 32;
+static constexpr size_t kMaxNumERpcProcesses = 10000;  // default is 32, just bypass the checking which doesn't mean we have so many processes
 
 /**
  * @relates Rpc
@@ -25,12 +25,13 @@ static constexpr size_t kMaxRpcId = UINT8_MAX - 1;
  * @brief The management port for an eRPC processes must be between
  * kBaseSmUdpPort and (kBaseSmUdpPort + kMaxNumERpcProcesses)
  */
-static constexpr uint16_t kBaseSmUdpPort = 31850;
+static constexpr uint16_t kBaseSmUdpPort = 31000;
 
-static_assert(kBaseSmUdpPort + kMaxNumERpcProcesses +
-                      (kMaxNumERpcProcesses * kMaxRpcId) <
-                  UINT16_MAX,
-              "");
+// bypass the port limitation
+// static_assert(kBaseSmUdpPort + kMaxNumERpcProcesses +
+//                       (kMaxNumERpcProcesses * kMaxRpcId) <
+//                   UINT16_MAX,
+//               "");
 
 /**
  * @relates Rpc

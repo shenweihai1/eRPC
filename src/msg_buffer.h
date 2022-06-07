@@ -134,6 +134,7 @@ class MsgBuffer {
    * smaller than it's maximum data capacity due to resizing.
    */
   inline size_t get_data_size() const { return data_size_; }
+  inline size_t get_req_type() const { return get_pkthdr_0()->req_type_; }
 
  private:
   /// The optional backing hugepage buffer. buffer.buf points to the zeroth
