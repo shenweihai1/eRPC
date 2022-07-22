@@ -61,14 +61,26 @@ Nexus::Nexus(std::string local_uri, size_t numa_node, size_t num_bg_threads)
   sm_thread_ctx.reg_hooks_lock_ = &reg_hooks_lock_;
 
   // Bind the session management thread to the last lcore on numa_node
-  size_t sm_thread_lcore_index = num_lcores_per_numa_node() - 1;
+  size_t sm_thread_lcore_index = sm_udp_port_ % num_lcores_per_numa_node();
   ERPC_INFO("eRPC Nexus: Launching session management thread on core %zu.\n",
             get_lcores_for_numa_node(numa_node).at(sm_thread_lcore_index));
   sm_thread_ = std::thread(sm_thread_func, sm_thread_ctx);
-  bind_to_core(sm_thread_, numa_node, sm_thread_lcore_index);
+  //bind_to_core(sm_thread_, numa_node, sm_thread_lcore_index);
 
   ERPC_INFO("eRPC Nexus: Created with management UDP port %u, hostname %s.\n",
             sm_udp_port_, hostname_.c_str());
+}
+
+void Nexus::print_stats() {
+  clockid_t cid;
+  int s;
+  struct timespec ts;
+  s = pthread_getcpuclockid(sm_thread_.native_handle(), &cid);
+  if (clock_gettime(cid, &ts) == -1) {
+    ERPC_INFO("[ERROR] clock_gettime for sm_thread_ of nexus");
+  } else {
+    ERPC_INFO("[CPU_TIME] for sm_thread_ of nexus: %4jd.%03ld\n", (intmax_t) ts.tv_sec, ts.tv_nsec / 1000000);
+  }
 }
 
 Nexus::~Nexus() {

@@ -59,6 +59,8 @@ class Nexus {
   int register_req_func(uint8_t req_type, erpc_req_func_t req_func,
                         ReqFuncType req_func_type = ReqFuncType::kForeground);
 
+  void print_stats();
+
  private:
   enum class BgWorkItemType : bool { kReq, kResp };
 
