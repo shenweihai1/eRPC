@@ -3,7 +3,7 @@
 namespace erpc {
 
 template <class TTr>
-void Rpc<TTr>::run_event_loop_do_one_st() {
+int Rpc<TTr>::run_event_loop_do_one_st() {
   assert(in_dispatch());
   dpath_stat_inc(dpath_stats_.ev_loop_calls_, 1);
 
@@ -13,7 +13,7 @@ void Rpc<TTr>::run_event_loop_do_one_st() {
   // The packet RX code uses ev_loop_tsc as the RX timestamp, so it must be
   // next to ev_loop_tsc stamping.
   ev_loop_tsc_ = dpath_rdtsc();
-  process_comps_st();  // RX
+  int num_pkts = process_comps_st();  // RX, process a message
 
   process_credit_stall_queue_st();    // TX
   if (kCcPacing) process_wheel_st();  // TX
@@ -33,6 +33,7 @@ void Rpc<TTr>::run_event_loop_do_one_st() {
     pkt_loss_scan_tsc_ = ev_loop_tsc_;
     pkt_loss_scan_st();
   }
+  return num_pkts;
 }
 
 template <class TTr>

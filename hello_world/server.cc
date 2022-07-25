@@ -18,5 +18,9 @@ int main() {
   nexus.register_req_func(kReqType, req_handler);
 
   rpc = new erpc::Rpc<erpc::CTransport>(&nexus, nullptr, 0, nullptr);
-  rpc->run_event_loop(100000);
+  while (true) {
+    int num_pkts = rpc->run_event_loop_once();
+    if (num_pkts > 0)
+      std::cout << "num_pkts: " << num_pkts << std::endl;
+  }
 }

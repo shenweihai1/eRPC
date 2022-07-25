@@ -304,7 +304,7 @@ class Rpc {
    *
    * This call returns immediately when there is no work to be done.
    */
-  inline void run_event_loop_once() { run_event_loop_do_one_st(); }
+  inline int run_event_loop_once() { return run_event_loop_do_one_st(); }
 
   /// Identical to alloc_msg_buffer(), but throws an exception on failure
   inline MsgBuffer alloc_msg_buffer_or_die(size_t max_data_size) {
@@ -649,7 +649,7 @@ class Rpc {
   void run_event_loop_timeout_st(size_t timeout_ms);
 
   /// Actually run one iteration of the event loop
-  void run_event_loop_do_one_st();
+  int run_event_loop_do_one_st();
 
   /// Enqueue client packets for a sslot that has at least one credit and
   /// request packets to send. Packets may be added to the timing wheel or the
@@ -844,8 +844,10 @@ class Rpc {
    * NIC until we send at least one response/CR packet back, we do not control
    * the order or time at which these packets are sent, due to constraints like
    * session credits and packet pacing.
+   *
+   * return: transport_->rx_burst
    */
-  void process_comps_st();
+  int process_comps_st();
 
   /**
    * @brief Submit a request work item to a random background thread
