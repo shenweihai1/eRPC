@@ -1,87 +1,49 @@
 #include "common.h"
-
-#include <vector>
-#include <string>
-#include <algorithm>
-#include <sstream>
-#include <iterator>
-#include <iostream>
-#include<cstdio>
-#include<ctime>
-#include <chrono>
 #include <atomic>
+#include <chrono>
+#include <iostream>
+
 
 erpc::Rpc<erpc::CTransport> *rpc;
 erpc::MsgBuffer req;
 erpc::MsgBuffer resp;
 int session_num;
+int temp_pointer=10;
 std::atomic<int64_t> received_num(0);
 auto stop = std::chrono::high_resolution_clock::now();
-bool block = true;
+std::atomic<bool> block(true);
 
 // this function is called if we receive a response from the server
-void cont_func(void *, void *) { 
-	block = false;
-        received_num++;
-        //printf("%s\n", resp.buf_);
-	std::cout << "received_num: " << received_num << std::endl;
-        if (received_num == 100){
-            stop = std::chrono::high_resolution_clock::now();
-        }
+void cont_func(void *_context, void *_tag) {
+  block = false;
+  received_num++;
+  std::cout << "received_num: " << received_num << std::endl;
+  std::cout << "the held pointer(_tag): " << (*(int*)_tag) << std::endl;
+  std::cout << "received message: " << (char*)resp.buf_ << std::endl;
+  if (received_num == 5) {
+    stop = std::chrono::high_resolution_clock::now();
+  }
 }
 
 void sm_handler(int, erpc::SmEventType, erpc::SmErrType, void *) {}
 
+void hello(int i) {
+  std::string v = std::to_string(i); 
+  const char *chr = v.c_str();
+  req = rpc->alloc_msg_buffer_or_die(strlen(chr));
+  sprintf(reinterpret_cast<char *>(req.buf_), "%s", chr);
+  resp = rpc->alloc_msg_buffer_or_die(kMsgSize);
 
-//void add(std::vector<int>& _req){
-//  //serialize vector into string
-//        std::ostringstream oss;
-//        if (!_req.empty()){
-//            // Convert all but the last element to avoid a trailing ","
-//            std::copy(_req.begin(), _req.end()-1,
-//            std::ostream_iterator<int>(oss, ","));
-//
-//            // Now add the last element with no delimiter
-//            oss << _req.back();
-//        }   
-//        std::string str = oss.str();
-//        const char* chr = str.c_str();
-//        req = rpc->alloc_msg_buffer_or_die(strlen(chr));
-//        sprintf(reinterpret_cast<char *>(req.buf_), "%s", chr);
-//        resp = rpc->alloc_msg_buffer_or_die(kMsgSize);
-//
-//        rpc->enqueue_request(session_num, 2, &req, &resp, cont_func, nullptr);
-//        // rpc->run_event_loop(2);
-//}
-
-
-void hello(std::vector<int>& _req){
-        std::ostringstream oss;
-        if (!_req.empty()){
-            // Convert all but the last element to avoid a trailing ","
-            std::copy(_req.begin(), _req.end()-1,
-                std::ostream_iterator<int>(oss, ","));
-
-            // Now add the last element with no delimiter
-            oss << _req.back();
-        }   
-        std::string str =  oss.str();
-        const char* chr = str.c_str();
-        req = rpc->alloc_msg_buffer_or_die(strlen(chr));
-        sprintf(reinterpret_cast<char *>(req.buf_), "%s", chr);
-        resp = rpc->alloc_msg_buffer_or_die(kMsgSize);
-
-        rpc->enqueue_request(session_num, 1, &req, &resp, cont_func, nullptr);
-	while (block) {
-           int num_pkts = rpc->run_event_loop_once();
-           if (num_pkts > 0)
-             std::cout << "num_pkts: " << num_pkts << std::endl;
-	}
-	block = true;
+  rpc->enqueue_request(session_num, 1, &req, &resp, cont_func, &temp_pointer);
+  while (block) {
+    int num_pkts = rpc->run_event_loop_once();
+  }
+  block = true;
 }
 
 int main() {
-  std::string client_uri = kClientHostname + ":" + std::to_string(kUDPPortClient);
+  std::string client_uri =
+      kClientHostname + ":" + std::to_string(kUDPPortClient);
   erpc::Nexus nexus(client_uri);
 
   rpc = new erpc::Rpc<erpc::CTransport>(&nexus, nullptr, 0, sm_handler);
@@ -92,21 +54,20 @@ int main() {
   while (!rpc->is_connected(session_num)) rpc->run_event_loop_once();
   std::cout << "connected to the server" << std::endl;
 
-  long long n = 100;
+  long long n = 5;
   auto start = std::chrono::high_resolution_clock::now();
-  for(int i = 0; i < n; i ++){  
-    std::vector<int> hello_req;
-    hello_req.push_back(i);
-    hello_req.push_back(i + 1);
-    hello(hello_req);
+  for (int i = 0; i < n; i++) {
+    hello(i);
   }
 
-  while(received_num < n){
+  while (received_num < n) {
     sleep(1);
   }
-  
-  auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
-  std::cout << "eRPC hello time: " << duration.count() << " microsseconds" << std::endl;
+
+  auto duration =
+      std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start);
+  std::cout << "eRPC hello time: " << duration.count() << " microsseconds"
+            << std::endl;
   std::cout << received_num << std::endl;
   delete rpc;
 }

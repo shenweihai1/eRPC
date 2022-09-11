@@ -52,9 +52,12 @@ void bind_to_core(std::thread &thread, size_t numa_node,
   const size_t global_index = lcore_vec.at(numa_local_index);
 
   CPU_SET(global_index, &cpuset);
+  std::string v="";
+  for (size_t i: lcore_vec)
+    v += std::to_string(i)+",";
   int rc = pthread_setaffinity_np(thread.native_handle(), sizeof(cpu_set_t),
                                   &cpuset);
-  rt_assert(rc == 0, "Error setting thread affinity");
+  rt_assert(rc == 0, "Error-2 setting thread affinity - "+v+ " - " + std::to_string(numa_local_index) + " - " + std::to_string(global_index));
 }
 
 void clear_affinity_for_process() {

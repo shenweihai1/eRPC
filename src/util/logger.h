@@ -55,23 +55,15 @@ namespace erpc {
 #define ERPC_ERROR(...) ((void)0)
 #endif
 
-#if ERPC_LOG_LEVEL >= ERPC_LOG_LEVEL_WARN
 #define ERPC_WARN(...)                                                  \
   erpc::output_log_header(ERPC_LOG_DEFAULT_STREAM, ERPC_LOG_LEVEL_WARN); \
   fprintf(ERPC_LOG_DEFAULT_STREAM, __VA_ARGS__);                        \
   fflush(ERPC_LOG_DEFAULT_STREAM)
-#else
-#define ERPC_WARN(...) ((void)0)
-#endif
 
-#if ERPC_LOG_LEVEL >= ERPC_LOG_LEVEL_INFO
 #define ERPC_INFO(...)                                                  \
   erpc::output_log_header(ERPC_LOG_DEFAULT_STREAM, ERPC_LOG_LEVEL_INFO); \
   fprintf(ERPC_LOG_DEFAULT_STREAM, __VA_ARGS__);                        \
   fflush(ERPC_LOG_DEFAULT_STREAM)
-#else
-#define ERPC_INFO(...) ((void)0)
-#endif
 
 #if ERPC_LOG_LEVEL >= ERPC_LOG_LEVEL_REORDER
 #define ERPC_REORDER(...)                                   \

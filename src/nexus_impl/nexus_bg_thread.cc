@@ -8,6 +8,7 @@
 namespace erpc {
 
 void Nexus::bg_thread_func(BgThreadCtx ctx) {
+  ERPC_INFO("invoke here........");
   ctx.tls_registry_->init();  // Initialize thread-local variables
 
   // The BgWorkItem request list can be indexed using the background thread's
