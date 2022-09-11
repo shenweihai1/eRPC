@@ -7,7 +7,7 @@ atomic<int> outstanding(0);
 atomic<int> counter(0);
 
 // this function will be called when we receive a request
-void hello_wrapper_request(erpc::ReqHandle *req_handle, void *) {
+void hello_wrapper_request_f(erpc::ReqHandle *req_handle, void *) {
   std::string s = reinterpret_cast<char *>(req_handle->get_req_msgbuf()->buf_);
   std::cout << "received a request from the client: " << s << std::endl;
   counter++;
@@ -19,6 +19,10 @@ void hello_wrapper_request(erpc::ReqHandle *req_handle, void *) {
   g_req_handle = req_handle;
   outstanding++;
   sleep(1);
+}
+
+void hello_wrapper_request_b(erpc::ReqHandle *req_handle, void *) {
+  std::cout << "receive a message from the background" << std::endl;
 }
 
 void enqueue_thread() {
@@ -36,12 +40,15 @@ int main() {
   std::cout << "server_uri: " <<  server_uri << std::endl;
   erpc::Nexus nexus(server_uri);
 
-  nexus.register_req_func(1, hello_wrapper_request, erpc::ReqFuncType::kForeground);
+  nexus.register_req_func(1, hello_wrapper_request_f, erpc::ReqFuncType::kForeground);
+  nexus.register_req_func(2, hello_wrapper_request_b, erpc::ReqFuncType::kBackground);
 
   //auto t=std::thread(enqueue_thread);
   //t.detach();
 
-  rpc = new erpc::Rpc<erpc::CTransport>(&nexus, nullptr, 1, nullptr);
+  //Nexus *nexus, void *context, uint8_t rpc_id,
+  //            sm_handler_t sm_handler, uint8_t phy_port
+  rpc = new erpc::Rpc<erpc::CTransport>(&nexus, nullptr, 100, nullptr);
   while (true) {
     int num_pkts = rpc->run_event_loop_once();
     enqueue_thread();
