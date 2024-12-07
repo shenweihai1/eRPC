@@ -85,7 +85,7 @@ Rpc<TTr>::Rpc(Nexus *nexus, void *context, uint8_t rpc_id,
   nexus_hook_.rpc_id_ = rpc_id;
   nexus->register_hook(&nexus_hook_);
 
-  ERPC_INFO("Rpc %u created. eRPC TID = %zu.\n", rpc_id, creator_etid_);
+  //ERPC_INFO("Rpc %u created. eRPC TID = %zu.\n", rpc_id, creator_etid_);
 
   active_rpcs_root_sentinel_.client_info_.next_ = &active_rpcs_tail_sentinel_;
   active_rpcs_root_sentinel_.client_info_.prev_ = nullptr;

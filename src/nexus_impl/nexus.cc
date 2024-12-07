@@ -30,7 +30,7 @@ Nexus::Nexus(std::string local_uri, size_t numa_node, size_t num_bg_threads)
   kill_switch_ = false;
 
   // Launch background threads
-  ERPC_INFO("eRPC Nexus: Launching %zu background threads.\n", num_bg_threads);
+  //ERPC_INFO("eRPC Nexus: Launching %zu background threads.\n", num_bg_threads);
   for (size_t i = 0; i < num_bg_threads; i++) {
     assert(tls_registry_.cur_etid_ == i);
 
@@ -62,8 +62,8 @@ Nexus::Nexus(std::string local_uri, size_t numa_node, size_t num_bg_threads)
 
   // Bind the session management thread to the last lcore on numa_node
   size_t sm_thread_lcore_index = sm_udp_port_ % num_lcores_per_numa_node();
-  ERPC_INFO("eRPC Nexus: Launching session management thread on core %zu.\n",
-            get_lcores_for_numa_node(numa_node).at(sm_thread_lcore_index));
+  //ERPC_INFO("eRPC Nexus: Launching session management thread on core %zu.\n",
+            //get_lcores_for_numa_node(numa_node).at(sm_thread_lcore_index));
   sm_thread_ = std::thread(sm_thread_func, sm_thread_ctx);
   //bind_to_core(sm_thread_, numa_node, sm_thread_lcore_index);
 
