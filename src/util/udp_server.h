@@ -17,7 +17,10 @@ class UDPServer {
   UDPServer(uint16_t port, size_t timeout_ms)
       : timeout_ms_(timeout_ms),
         socket_(new asio::ip::udp::socket(
-            io_context_, asio::ip::udp::endpoint(asio::ip::udp::v4(), port))) {}
+            io_context_, asio::ip::udp::endpoint(asio::ip::udp::v4(), port))) {
+    // Set SO_REUSEADDR to allow port reuse
+    socket_->set_option(asio::ip::udp::socket::reuse_address(true));
+  }
 
   UDPServer() {}
   UDPServer(const UDPServer &) = delete;

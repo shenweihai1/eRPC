@@ -171,6 +171,9 @@ class Rpc {
    */
   static inline void resize_msg_buffer(MsgBuffer *msg_buffer,
                                        size_t new_data_size) {
+    // kk: the new_data_size:16,max_data_size_:8?? why it happens
+    // printf("kk: the new_data_size:%d,max_data_size_:%d\n", new_data_size,  msg_buffer->max_data_size_);
+    // fflush(stdout);
     assert(new_data_size <= msg_buffer->max_data_size_);
 
     // Avoid division for single-packet data sizes

@@ -13,17 +13,19 @@ void hello_wrapper_request_f(erpc::ReqHandle *req_handle, void *) {
   counter++;
 
   auto &resp = req_handle->pre_resp_msgbuf_;
-  std::string v="hello request was processed:"+to_string(counter);
+  std::cout << "[1]resp: data_size: " << resp.get_data_size() << ", max_data_size: " << resp.get_max_data_size() << std::endl;
+  std::string v="server:"+to_string(counter);
   rpc->resize_msg_buffer(&resp, strlen(v.data()));
+  std::cout << "[2]resp: data_size: " << resp.get_data_size() << ", max_data_size: " << resp.get_max_data_size() << std::endl;
   sprintf(reinterpret_cast<char *>(resp.buf_), v.data());
   g_req_handle = req_handle;
   outstanding++;
   sleep(1);
 }
 
-void hello_wrapper_request_b(erpc::ReqHandle *req_handle, void *) {
-  std::cout << "receive a message from the background" << std::endl;
-}
+// void hello_wrapper_request_b(erpc::ReqHandle *req_handle, void *) {
+//   std::cout << "receive a message from the background" << std::endl;
+// }
 
 void enqueue_thread() {
   //while (true)
@@ -41,7 +43,7 @@ int main() {
   erpc::Nexus nexus(server_uri);
 
   nexus.register_req_func(1, hello_wrapper_request_f, erpc::ReqFuncType::kForeground);
-  nexus.register_req_func(2, hello_wrapper_request_b, erpc::ReqFuncType::kBackground);
+  //nexus.register_req_func(2, hello_wrapper_request_b, erpc::ReqFuncType::kBackground);
 
   //auto t=std::thread(enqueue_thread);
   //t.detach();
@@ -49,6 +51,8 @@ int main() {
   //Nexus *nexus, void *context, uint8_t rpc_id,
   //            sm_handler_t sm_handler, uint8_t phy_port
   rpc = new erpc::Rpc<erpc::CTransport>(&nexus, nullptr, 100, nullptr);
+  std::cout<<"max_msg_size:"<<rpc->get_max_msg_size()<<std::endl;
+
   while (true) {
     int num_pkts = rpc->run_event_loop_once();
     enqueue_thread();

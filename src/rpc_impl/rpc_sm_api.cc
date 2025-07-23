@@ -71,9 +71,24 @@ int Rpc<TTr>::create_session_st(std::string remote_uri, uint8_t rem_rpc_id) {
   // server_endpoint.routing_info = ??
 
   alloc_ring_entries();
+  
+  // Debug: Print session info before adding to vector
+  printf("DEBUG: About to add session to vector. session=%p, session_num=%d, vector_size=%zu\n", 
+         session, session->local_session_num_, session_vec_.size());
+  
   session_vec_.push_back(session);  // Add to list of all sessions
+  
+  // Debug: Verify session was added correctly
+  printf("DEBUG: Session added. vector_size=%zu, session_vec_[%d]=%p\n", 
+         session_vec_.size(), session->local_session_num_, 
+         session_vec_[session->local_session_num_]);
 
   send_sm_req_st(session);
+  
+  // Debug: Check session after send_sm_req_st
+  printf("DEBUG: After send_sm_req_st. session_vec_[%d]=%p\n", 
+         session->local_session_num_, session_vec_[session->local_session_num_]);
+  
   return client_endpoint.session_num_;
 }
 

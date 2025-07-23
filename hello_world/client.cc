@@ -29,8 +29,9 @@ void hello_wrapper_response(void *_context, void *_tag) {
 void sm_handler(int, erpc::SmEventType, erpc::SmErrType, void *) {}
 
 void hello(int i, int req_type) {
-  std::string v = std::to_string(i); 
+  std::string v = std::to_string(i+100000); 
   const char *chr = v.c_str();
+  printf("hello_client send size:%d\n", strlen(chr));
   req = rpc->alloc_msg_buffer_or_die(strlen(chr));
   sprintf(reinterpret_cast<char *>(req.buf_), "%s", chr);
   resp = rpc->alloc_msg_buffer_or_die(kMsgSize);
@@ -53,8 +54,18 @@ int main() {
 
   std::string server_uri = kServerHostname + ":" + std::to_string(kUDPPort);
   session_num = rpc->create_session(server_uri, 100);
+  std::cout << "create_session returned: " << session_num << std::endl;
 
-  while (!rpc->is_connected(session_num)) rpc->run_event_loop_once();
+  if (session_num < 0) {
+    std::cout << "create_session failed with error: " << session_num << std::endl;
+    return -1;
+  }
+
+  printf("DEBUG: About to check is_connected with session_num=%d\n", session_num);
+  while (!rpc->is_connected(session_num)) {
+    printf("DEBUG: Session %d not connected yet, running event loop...\n", session_num);
+    rpc->run_event_loop_once();
+  }
   std::cout << "connected to the server: " << session_num << std::endl;
 
   // auto start = std::chrono::high_resolution_clock::now();

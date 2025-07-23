@@ -16,7 +16,14 @@ int Rpc<TTr>::process_comps_st() {
   const size_t &batch_rx_tsc = ev_loop_tsc_;
 
   for (size_t i = 0; i < num_pkts; i++) {
+    // printf("DEBUG: process_comps_st processing packet %zu/%zu, rx_ring_head_=%zu\n", 
+    //        i, num_pkts, rx_ring_head_);
+    // fflush(stdout);
+    
     auto *pkthdr = reinterpret_cast<pkthdr_t *>(rx_ring_[rx_ring_head_]);
+    //printf("DEBUG: pkthdr at rx_ring_[%zu] = %p\n", rx_ring_head_, pkthdr);
+    // fflush(stdout);
+    
     rx_ring_head_ = (rx_ring_head_ + 1) % Transport::kNumRxRingEntries;
 
     // XXX: This acts as a stopgap function to filter non-eRPC packets, like

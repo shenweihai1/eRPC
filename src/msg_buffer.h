@@ -118,6 +118,9 @@ class MsgBuffer {
 
   /// Resize this MsgBuffer to any size smaller than its maximum allocation
   inline void resize(size_t new_data_size, size_t new_num_pkts) {
+    // printf("resize: %s", to_string().c_str());
+    // printf("the new_data_size:%d,max_data_size_:%d\n", new_data_size, max_data_size_);
+    // fflush(stdout);
     assert(new_data_size <= max_data_size_);
     assert(new_num_pkts <= max_num_pkts_);
     data_size_ = new_data_size;
@@ -134,6 +137,7 @@ class MsgBuffer {
    * smaller than it's maximum data capacity due to resizing.
    */
   inline size_t get_data_size() const { return data_size_; }
+  inline size_t get_max_data_size() const {return max_data_size_; }
   inline size_t get_req_type() const { return get_pkthdr_0()->req_type_; }
 
  private:

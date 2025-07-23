@@ -135,6 +135,7 @@ void Rpc<TTr>::process_small_req_st(SSlot *sslot, pkthdr_t *pkthdr) {
       // For foreground request handlers, a "fake" static request msgbuf
       // suffices. This improves performance, but it restricts ownership of the
       // request msgbuf to the duration of req_func.
+      //printf("It's important to show here------------------------, pkthdr->msg_size_:%d\n",pkthdr->msg_size_);
       req_msgbuf = MsgBuffer(pkthdr, pkthdr->msg_size_);
     } else {
       req_msgbuf = alloc_msg_buffer(pkthdr->msg_size_);

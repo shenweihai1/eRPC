@@ -67,6 +67,8 @@ void Rpc<TTr>::handle_connect_req_st(const SmPkt &sm_pkt) {
 
   if (!resolve_success) {
     std::string routing_info_str = TTr::routing_info_str(&client_rinfo);
+    printf("DEBUG: resolve_remote_routing_info returned false for: %s\n", routing_info_str.c_str());
+    fflush(stdout);
     ERPC_WARN("%s: Unable to resolve routing info %s. Sending response.\n",
               issue_msg, routing_info_str.c_str());
     sm_pkt_udp_tx_st(
@@ -81,7 +83,8 @@ void Rpc<TTr>::handle_connect_req_st(const SmPkt &sm_pkt) {
 
   for (size_t i = 0; i < kSessionReqWindow; i++) {
     MsgBuffer &msgbuf_i = session->sslot_arr_[i].pre_resp_msgbuf_;
-    msgbuf_i = alloc_msg_buffer(pre_resp_msgbuf_size_);
+    //printf("the pre-allocated message size: %zu\n", pre_resp_msgbuf_size_);
+    msgbuf_i = alloc_msg_buffer(pre_resp_msgbuf_size_); // the pre-allocated message size
 
     if (msgbuf_i.buf_ == nullptr) {
       // Cleanup everything allocated for this session

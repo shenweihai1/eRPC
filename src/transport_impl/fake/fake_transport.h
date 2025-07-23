@@ -1,41 +1,81 @@
 /**
  * @file fake_transport.h
- * @brief Implementation of a dummy transport to test compilation on machines
- * that lack verbs and DPDK.
+ * @brief Socket-based transport implementation for eRPC that provides
+ * wide compatibility across different server platforms.
  */
 #pragma once
 
 #ifdef ERPC_FAKE
 
 #include "transport.h"
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <queue>
+#include <mutex>
+#include <thread>
+#include <atomic>
 
 namespace erpc {
 
 class FakeTransport : public Transport {
  public:
   static constexpr TransportType kTransportType = TransportType::kFake;
-  static constexpr size_t kMTU = 1024;
+  static constexpr size_t kMTU = 1024;  // Match other eRPC transports
   static constexpr size_t kPostlist = 16;
   static constexpr size_t kUnsigBatch = 64;
   static constexpr size_t kMaxDataPerPkt = (kMTU - sizeof(pkthdr_t));
 
-  FakeTransport(uint16_t, uint8_t rpc_id, uint8_t phy_port, size_t numa_node,
-                FILE *trace_file)
-      : Transport(TransportType::kRaw, rpc_id, phy_port, numa_node,
-                  trace_file) {}
+  /// Socket routing info structure embedded in routing_info_t
+  struct socket_routing_info_t {
+    uint32_t ipv4_addr;  ///< IPv4 address in network byte order
+    uint16_t udp_port;   ///< UDP port in host byte order
+    uint16_t padding;    ///< Padding for alignment
+  };
 
-  inline void init_hugepage_structures(HugeAlloc *, uint8_t **) {}
-  inline void fill_local_routing_info(routing_info_t *) const {}
+  FakeTransport(uint16_t sm_udp_port, uint8_t rpc_id, uint8_t phy_port, 
+                size_t numa_node, FILE *trace_file);
+  ~FakeTransport();
 
-  inline bool resolve_remote_routing_info(routing_info_t *) { return false; }
-  inline size_t get_bandwidth() const { return 0; }
+  void init_hugepage_structures(HugeAlloc *huge_alloc, uint8_t **rx_ring);
+  void init_mem_reg_funcs();
+  void fill_local_routing_info(routing_info_t *routing_info) const;
 
-  static std::string routing_info_str(routing_info_t *) { return ""; }
+  bool resolve_remote_routing_info(routing_info_t *routing_info);
+  size_t get_bandwidth() const;
 
-  void tx_burst(const tx_burst_item_t *, size_t) {}
-  void tx_flush() {}
-  size_t rx_burst() { return 0; }
-  void post_recvs(size_t) {}
+  static std::string routing_info_str(routing_info_t *routing_info);
+
+  void tx_burst(const tx_burst_item_t *tx_burst_arr, size_t num_pkts);
+  void tx_flush();
+  size_t rx_burst();
+  void post_recvs(size_t num_recvs);
+
+ private:
+  /**
+   * @brief Resolve the local IP address for socket communication
+   */
+  void resolve_local_ip_address();
+
+  // Socket state
+  int socket_fd_;
+  uint16_t local_port_;
+  struct sockaddr_in local_addr_;
+  uint32_t local_ipv4_addr_;  // Local IP address (resolved dynamically)
+  
+  // Receive thread and buffers
+  std::thread *rx_thread_;
+  std::atomic<bool> stop_rx_thread_;
+  std::queue<std::pair<uint8_t*, size_t>> rx_packet_queue_;
+  std::mutex rx_queue_mutex_;
+  
+  // Receive ring buffer management  
+  uint8_t **rx_ring_;  // Pointer to eRPC's rx_ring array
+  size_t rx_tail_;
+  
+  void rx_thread_func();
+  void cleanup_rx_thread();
 };
 
 }  // namespace erpc
