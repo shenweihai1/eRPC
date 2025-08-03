@@ -72,6 +72,13 @@ void HugeAlloc::print_stats() {
 }
 
 Buffer HugeAlloc::alloc_raw(size_t size, DoRegister do_register) {
+#ifdef ERPC_FAKE
+  _unused(size);
+  _unused(do_register);
+  uint8_t *buf = new uint8_t[size];
+  return Buffer(buf, SIZE_MAX, UINT32_MAX);
+#endif
+
 #ifdef __linux__
   std::ostringstream xmsg;  // The exception message
   size = round_up<kHugepageSize>(size);
