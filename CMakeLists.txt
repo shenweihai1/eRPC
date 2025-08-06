@@ -49,8 +49,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsign-conversion -Wold-style-cast -Wno-
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-nested-anon-types -Wno-keyword-macro -Wno-deprecated-declarations")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-address-of-packed-member")
 
-include_directories(${CMAKE_SOURCE_DIR}/src)
-include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/third_party)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
+include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/third_party)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/build)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/build)
@@ -208,7 +208,7 @@ endif()
 
 # Generate config.h
 configure_file(src/config.h.in src/config.h)
-include_directories(${CMAKE_BINARY_DIR}/src)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/src)
 
 # MICA sources
 set(MICA_SOURCES
@@ -216,8 +216,8 @@ set(MICA_SOURCES
   mica/src/mica/util/config.cc)
 
 # The app to compile. Only one app is compiled to reduce compile time.
-if(EXISTS "${CMAKE_SOURCE_DIR}/scripts/autorun_app_file")
-  file(STRINGS "scripts/autorun_app_file" APP)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/scripts/autorun_app_file")
+  file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/scripts/autorun_app_file" APP)
 else()
   message(STATUS "No autorun_app_file found. No application will be compiled.")
   return()
@@ -363,6 +363,8 @@ endif()
 
 # Compile the library
 add_library(erpc ${SOURCES})
+target_include_directories(erpc PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
+target_include_directories(erpc PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/src)
 
 if(DPDK_NEEDED STREQUAL "true")
   if (NOT WIN32)
