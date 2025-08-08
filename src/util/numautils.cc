@@ -14,8 +14,14 @@ namespace erpc {
 
 #ifdef __linux__
 size_t num_lcores_per_numa_node() {
-  return static_cast<size_t>(numa_num_configured_cpus() /
-                             numa_num_configured_nodes());
+  int num_nodes = numa_num_configured_nodes();
+  int num_cpus = numa_num_configured_cpus();
+
+  if (num_nodes <= 0) {
+    return static_cast<size_t>(num_cpus > 0 ? num_cpus : 1);
+  }
+
+  return static_cast<size_t>(num_cpus / num_nodes);
 }
 
 std::vector<size_t> get_lcores_for_numa_node(size_t numa_node) {
