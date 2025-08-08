@@ -207,7 +207,7 @@ else()
 endif()
 
 # Generate config.h
-configure_file(src/config.h.in src/config.h)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/config.h.in ${CMAKE_CURRENT_SOURCE_DIR}/src/config.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/src)
 
 # MICA sources
